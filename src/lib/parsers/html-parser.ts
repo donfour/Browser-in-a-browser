@@ -1,7 +1,7 @@
-import { AttributesMap, ElementNode, Node, TextNode } from "./dom";
-import { assertEqual, Parser } from "./parser";
+import { AttributesMap, ElementNode, Node, TextNode } from "../dom";
+import { assertEqual, BaseParser } from "./base-parser";
 
-export class HtmlParser extends Parser {
+export class HtmlParser extends BaseParser {
   // Parse a tag or attribute name.
   parseTagName(): string {
     return this.consumeWhile((char) => /[a-zA-z0-9]/.test(char));

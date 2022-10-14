@@ -1,4 +1,4 @@
-import { parseHtml, HtmlParser } from "./html";
+import { parseHtml, HtmlParser } from "./html-parser";
 
 describe("HtmlParser", () => {
   test("parseTagName", () => {

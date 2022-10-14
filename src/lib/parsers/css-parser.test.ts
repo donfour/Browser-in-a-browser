@@ -1,4 +1,4 @@
-import { CssParser } from "./css";
+import { CssParser } from "./css-parser";
 
 describe("CssParser", () => {
   test("parseIdentifier", () => {

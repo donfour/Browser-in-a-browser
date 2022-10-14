@@ -3,7 +3,7 @@ export function assertEqual(actual: string, ...expect: string[]) {
     throw new Error(`Expect "${expect}", but got "${actual}".`);
 }
 
-export class Parser {
+export class BaseParser {
   position: number;
   input: string;
 

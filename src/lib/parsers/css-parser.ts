@@ -1,4 +1,4 @@
-import { assertEqual, Parser } from "./parser";
+import { assertEqual, BaseParser } from "./base-parser";
 
 export type Stylesheet = {
   rules: Rule[];
@@ -38,7 +38,7 @@ function validIdentifierChar(c: string): boolean {
   return /[a-zA-Z0-9\-]/.test(c);
 }
 
-export class CssParser extends Parser {
+export class CssParser extends BaseParser {
   /// Parse a property name or keyword.
   parseIdentifier(): string {
     return this.consumeWhile(validIdentifierChar);
