@@ -9,7 +9,7 @@ type Rule = {
   declarations: Declaration[];
 };
 
-class Selector {
+export class Selector {
   tagName?: string;
   id?: string;
   classList: string[];

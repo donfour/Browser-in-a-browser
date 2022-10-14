@@ -15,7 +15,7 @@ export class TextNode extends Node {
 
 export type AttributesMap = { [key: string]: string };
 
-type ElementData = {
+export type ElementData = {
   tagName: string;
   attributes: AttributesMap;
 };
