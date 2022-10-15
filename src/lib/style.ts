@@ -1,28 +1,30 @@
-import { ElementData } from "./dom";
-import { Selector } from "./parsers/css-parser";
+import { Node, ElementData, TextNode, ElementNode } from "./dom";
+import {
+  compareSpecificity,
+  Rule,
+  Selector,
+  Specificity,
+  Stylesheet,
+} from "./parsers/css-parser";
 
 // Map from CSS property names to values.
 type PropertyMap = { [key: string]: string };
 
 // A node with associated style data.
 export class StyledNode {
-  node: Node; // pointer to a DOM node
+  data: string | ElementData;
   specifiedValues: PropertyMap;
   children: StyledNode[];
 
   constructor(
-    node: Node,
+    data: string | ElementData,
     specifiedValues: PropertyMap,
     children: StyledNode[]
   ) {
-    this.node = node;
+    this.data = data;
     this.specifiedValues = specifiedValues;
     this.children = children;
   }
-}
-
-export function matches(elem: ElementData, selector: Selector): boolean {
-  return false;
 }
 
 export function matchesSimpleSelector(
@@ -49,4 +51,65 @@ export function matchesSimpleSelector(
 
   // We didn't find any non-matching selector components.
   return true;
+}
+
+export type MatchedRule = [Specificity, Rule];
+
+// If `rule` matches `elem`, return a `MatchedRule`. Otherwise return `None`.
+export function matchRule(
+  elem: ElementData,
+  rule: Rule
+): MatchedRule | undefined {
+  // Find the first (highest-specificity) matching selector.
+  const matchedSelector = rule.selectors.find((selector) =>
+    matchesSimpleSelector(elem, selector)
+  );
+  return matchedSelector ? [matchedSelector.specificity(), rule] : undefined;
+}
+
+export function matchingRules(
+  elem: ElementData,
+  stylesheet: Stylesheet
+): MatchedRule[] {
+  const result = [];
+  for (const rule of stylesheet.rules) {
+    const matchedRule = matchRule(elem, rule);
+    if (matchedRule) {
+      result.push(matchedRule);
+    }
+  }
+  return result;
+}
+
+// Apply styles to a single element, returning the specified values.
+export function specifiedValues(
+  elem: ElementData,
+  stylesheet: Stylesheet
+): PropertyMap {
+  const values: PropertyMap = {};
+  const rules = matchingRules(elem, stylesheet);
+
+  // Go through the rules from lowest to highest specificity.
+  rules.sort((a, b) => compareSpecificity(b[0], a[0]));
+
+  for (const rule of rules) {
+    for (const declaration of rule[1].declarations) {
+      values[declaration.name] = declaration.value;
+    }
+  }
+
+  return values;
+}
+
+// Apply a stylesheet to an entire DOM tree, returning a StyledNode tree.
+export function styleTree(root: Node, stylesheet: Stylesheet): StyledNode {
+  const s =
+    root instanceof TextNode
+      ? {}
+      : specifiedValues((root as ElementNode).data, stylesheet);
+  const children: StyledNode[] = root.children.map((child) =>
+    styleTree(child, stylesheet)
+  );
+
+  return new StyledNode(root.data, s, children);
 }

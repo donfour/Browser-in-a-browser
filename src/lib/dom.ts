@@ -1,7 +1,9 @@
 export class Node {
   children: Node[];
+  data: string | ElementData;
   constructor(children: Node[]) {
     this.children = children;
+    this.data = "";
   }
 }
 
