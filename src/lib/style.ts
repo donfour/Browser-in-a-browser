@@ -7,6 +7,12 @@ import {
   Stylesheet,
 } from "./parsers/css-parser";
 
+export enum Display {
+  Inline,
+  Block,
+  None,
+}
+
 // Map from CSS property names to values.
 type PropertyMap = { [key: string]: string };
 
@@ -24,6 +30,18 @@ export class StyledNode {
     this.data = data;
     this.specifiedValues = specifiedValues;
     this.children = children;
+  }
+
+  // The value of the `display` property (defaults to inline).
+  display(): Display {
+    switch (this.specifiedValues.display) {
+      case "block":
+        return Display.Block;
+      case "none":
+        return Display.None;
+      default:
+        return Display.Inline;
+    }
   }
 }
 
