@@ -1,4 +1,11 @@
-import { BoxType, LayoutBox } from "./layout";
+import {
+  BoxType,
+  DEFAULT_EDGE_SIZES,
+  DEFAULT_RECT,
+  Dimensions,
+  LayoutBox,
+} from "./layout";
+import { StyledNode } from "./style";
 
 describe("layout", () => {
   describe("getInlineContainer", () => {
@@ -28,6 +35,49 @@ describe("layout", () => {
           new LayoutBox(BoxType.AnonymousBlock)
         );
         expect(box.children.length).toEqual(1);
+      });
+    });
+  });
+
+  describe("calculateBlockWidth", () => {
+    test("width should be set to auto if not given", () => {
+      const box = new LayoutBox(
+        BoxType.BlockNode,
+        new StyledNode("test", {}, [])
+      );
+      const containingBlock: Dimensions = {
+        content: { ...DEFAULT_RECT },
+        padding: { ...DEFAULT_EDGE_SIZES },
+        border: { ...DEFAULT_EDGE_SIZES },
+        margin: { ...DEFAULT_EDGE_SIZES },
+      };
+
+      box.calculateBlockWidth(containingBlock);
+
+      expect(box.dimensions.content.width).toEqual("auto");
+    });
+
+    describe("if width is set to auto", () => {
+      test("if width is larger than containing block's width, treat auto margins as 0.", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode(
+            "test",
+            { width: "100", "margin-left": "0", "margin-right": "0" },
+            []
+          )
+        );
+        const containingBlock: Dimensions = {
+          content: { ...DEFAULT_RECT, width: 50 },
+          padding: { ...DEFAULT_EDGE_SIZES },
+          border: { ...DEFAULT_EDGE_SIZES },
+          margin: { ...DEFAULT_EDGE_SIZES },
+        };
+
+        box.calculateBlockWidth(containingBlock);
+
+        expect(box.dimensions.margin.left).toEqual(0);
+        expect(box.dimensions.margin.right).toEqual(-50);
       });
     });
   });

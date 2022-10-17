@@ -43,6 +43,12 @@ export class StyledNode {
         return Display.Inline;
     }
   }
+
+  lookupSize(property: string, backupProperty: string): number {
+    return Number.parseInt(
+      this.specifiedValues[property] || this.specifiedValues[backupProperty]
+    );
+  }
 }
 
 export function matchesSimpleSelector(

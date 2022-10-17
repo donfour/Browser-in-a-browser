@@ -5,3 +5,7 @@ Adopted from [robinson](https://github.com/mbrubeck/robinson) and [this excellen
 Terminologies:
 
 - Selector: a Simple Selector as defined in CSS 2.1.
+
+Limitations:
+
+- Only available length unit is px.
