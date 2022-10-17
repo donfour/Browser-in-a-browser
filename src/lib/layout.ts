@@ -26,19 +26,30 @@ export type Dimensions = {
   margin: EdgeSizes;
 };
 
-export const DEFAULT_RECT = {
+const DEFAULT_RECT = {
   x: 0,
   y: 0,
   width: 0,
   height: 0,
 };
 
-export const DEFAULT_EDGE_SIZES = {
+const DEFAULT_EDGE_SIZES = {
   left: 0,
   right: 0,
   top: 0,
   bottom: 0,
 };
+
+export function getDefaultDimensions(): Dimensions {
+  return JSON.parse(
+    JSON.stringify({
+      content: { ...DEFAULT_RECT },
+      padding: { ...DEFAULT_EDGE_SIZES },
+      border: { ...DEFAULT_EDGE_SIZES },
+      margin: { ...DEFAULT_EDGE_SIZES },
+    })
+  );
+}
 
 export enum BoxType {
   BlockNode,
@@ -47,12 +58,7 @@ export enum BoxType {
 }
 
 export class LayoutBox {
-  dimensions: Dimensions = {
-    content: { ...DEFAULT_RECT },
-    padding: { ...DEFAULT_EDGE_SIZES },
-    border: { ...DEFAULT_EDGE_SIZES },
-    margin: { ...DEFAULT_EDGE_SIZES },
-  };
+  dimensions: Dimensions = getDefaultDimensions();
   boxType: BoxType;
   styledNode?: StyledNode;
   children: LayoutBox[] = [];
@@ -124,37 +130,22 @@ export class LayoutBox {
 
     // `width` has initial value `auto`.
     const auto = "auto";
-    let width: string | number = style?.specifiedValues?.width || auto;
+    let width: number | "auto" =
+      Number.parseInt(style?.specifiedValues?.width || "") || auto;
 
     // margin, border, and padding have initial value 0.
     const zero = 0;
 
-    let marginLeft =
-      style?.specifiedValues["margin-left"] ||
-      style?.specifiedValues["margin"] ||
-      zero;
-    let marginRight =
-      style?.specifiedValues["margin-right"] ||
-      style?.specifiedValues["margin"] ||
-      zero;
+    let marginLeft = style?.lookupSize("margin-left", "margin") || zero;
+    let marginRight = style?.lookupSize("margin-right", "margin") || zero;
 
     const borderLeft =
-      style?.specifiedValues["border-left-width"] ||
-      style?.specifiedValues["border-width"] ||
-      zero;
+      style?.lookupSize("border-left-width", "border-width") || zero;
     const borderRight =
-      style?.specifiedValues["border-right-width"] ||
-      style?.specifiedValues["border-width"] ||
-      zero;
+      style?.lookupSize("border-right-width", "border-width") || zero;
 
-    const paddingLeft =
-      style?.specifiedValues["padding-left"] ||
-      style?.specifiedValues["padding"] ||
-      zero;
-    const paddingRight =
-      style?.specifiedValues["padding-right"] ||
-      style?.specifiedValues["padding"] ||
-      zero;
+    const paddingLeft = style?.lookupSize("padding-left", "padding") || zero;
+    const paddingRight = style?.lookupSize("padding-right", "padding") || zero;
 
     const total = [
       marginLeft,
@@ -164,11 +155,9 @@ export class LayoutBox {
       paddingLeft,
       paddingRight,
       width,
-    ].reduce(
-      (a, b) =>
-        Number.parseInt(a as string) || 0 + Number.parseFloat(b as string) || 0,
-      0
-    );
+    ]
+      .map((num) => (num === "auto" ? 0 : num))
+      .reduce((a, b) => a + b, 0);
 
     // If width is not auto and the total is wider than the container, treat auto margins as 0.
     if (width !== auto && total > containingBlock.content.width) {
@@ -188,13 +177,11 @@ export class LayoutBox {
     if (width !== auto) {
       if (marginLeft !== auto && marginRight !== auto) {
         // If the values are overconstrained, calculate marginRight.
-
         marginRight = (marginRight as number) + underflow;
-        console.log("marginRight set to: ", marginRight);
-      } else if (marginLeft !== auto && marginRight === auto) {
-        marginRight = underflow;
       } else if (marginLeft === auto && marginRight !== auto) {
         marginLeft = underflow;
+      } else if (marginLeft !== auto && marginRight === auto) {
+        marginRight = underflow;
       } else if (marginLeft === auto && marginRight === auto) {
         // If margin-left and margin-right are both auto, their used values are equal.
         marginLeft = underflow / 2.0;
@@ -204,7 +191,6 @@ export class LayoutBox {
       // If width is set to auto, any other auto values become 0.
       if (marginLeft === auto) marginLeft = 0;
       if (marginRight === auto) marginRight = 0;
-
       if (underflow >= 0.0) {
         // Expand width to fill the underflow.
         width = underflow;
@@ -216,7 +202,7 @@ export class LayoutBox {
     }
 
     const d = this.dimensions;
-    d.content.width = Number.parseInt(width as string);
+    d.content.width = width;
 
     d.padding.left = Number.parseInt(paddingLeft as string);
     d.padding.right = Number.parseInt(paddingRight as string);

@@ -1,10 +1,4 @@
-import {
-  BoxType,
-  DEFAULT_EDGE_SIZES,
-  DEFAULT_RECT,
-  Dimensions,
-  LayoutBox,
-} from "./layout";
+import { BoxType, Dimensions, getDefaultDimensions, LayoutBox } from "./layout";
 import { StyledNode } from "./style";
 
 describe("layout", () => {
@@ -40,44 +34,106 @@ describe("layout", () => {
   });
 
   describe("calculateBlockWidth", () => {
-    test("width should be set to auto if not given", () => {
-      const box = new LayoutBox(
-        BoxType.BlockNode,
-        new StyledNode("test", {}, [])
-      );
-      const containingBlock: Dimensions = {
-        content: { ...DEFAULT_RECT },
-        padding: { ...DEFAULT_EDGE_SIZES },
-        border: { ...DEFAULT_EDGE_SIZES },
-        margin: { ...DEFAULT_EDGE_SIZES },
-      };
+    describe("if width is a number", () => {
+      test("if width is different from containing block's width, use margin right to adjust.", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode("some text", { width: "50" }, [])
+        );
 
-      box.calculateBlockWidth(containingBlock);
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 100;
 
-      expect(box.dimensions.content.width).toEqual("auto");
-    });
+        box.calculateBlockWidth(containingBlock);
 
-    describe("if width is set to auto", () => {
-      test("if width is larger than containing block's width, treat auto margins as 0.", () => {
+        expect(box.dimensions.margin.right).toEqual(50);
+      });
+      test("if margin-left is set to auto, set margin-left to underflow.", () => {
         const box = new LayoutBox(
           BoxType.BlockNode,
           new StyledNode(
-            "test",
-            { width: "100", "margin-left": "0", "margin-right": "0" },
+            "some text",
+            { width: "50", "margin-left": "auto" },
             []
           )
         );
-        const containingBlock: Dimensions = {
-          content: { ...DEFAULT_RECT, width: 50 },
-          padding: { ...DEFAULT_EDGE_SIZES },
-          border: { ...DEFAULT_EDGE_SIZES },
-          margin: { ...DEFAULT_EDGE_SIZES },
-        };
+
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 100;
+
+        box.calculateBlockWidth(containingBlock);
+
+        expect(box.dimensions.margin.left).toEqual(50);
+        expect(box.dimensions.margin.right).toEqual(0);
+      });
+      test("if margin-right is set to auto, set margin-right to underflow.", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode(
+            "some text",
+            { width: "50", "margin-right": "auto" },
+            []
+          )
+        );
+
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
 
         expect(box.dimensions.margin.left).toEqual(0);
-        expect(box.dimensions.margin.right).toEqual(-50);
+        expect(box.dimensions.margin.right).toEqual(50);
+      });
+      test("if both margin-left and margin-right is set to auto, distribute underflow equally between them.", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode(
+            "some text",
+            { width: "50", "margin-left": "auto", "margin-right": "auto" },
+            []
+          )
+        );
+
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 100;
+
+        box.calculateBlockWidth(containingBlock);
+
+        expect(box.dimensions.margin.left).toEqual(25);
+        expect(box.dimensions.margin.right).toEqual(25);
+      });
+    });
+    describe("if width his set to auto", () => {
+      test("if underflow is larger or equal to 0, set width to underflow", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode("some text", { width: "auto" }, [])
+        );
+
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 100;
+
+        box.calculateBlockWidth(containingBlock);
+
+        expect(box.dimensions.content.width).toEqual(100);
+      });
+      test("if underflow is smaller than 0, set width to 0 and shrink margin-right to fit container width.", () => {
+        const box = new LayoutBox(
+          BoxType.BlockNode,
+          new StyledNode(
+            "some text",
+            { width: "auto", "margin-left": "50", "margin-right": "50" },
+            []
+          )
+        );
+
+        const containingBlock = getDefaultDimensions();
+        containingBlock.content.width = 50;
+
+        box.calculateBlockWidth(containingBlock);
+
+        expect(box.dimensions.margin.left).toEqual(50);
+        expect(box.dimensions.margin.right).toEqual(0);
       });
     });
   });

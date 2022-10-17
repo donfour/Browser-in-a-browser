@@ -44,7 +44,14 @@ export class StyledNode {
     }
   }
 
-  lookupSize(property: string, backupProperty: string): number {
+  lookupSize(property: string, backupProperty: string): number | "auto" {
+    if (
+      this.specifiedValues[property] === "auto" ||
+      this.specifiedValues[backupProperty] === "auto"
+    ) {
+      return "auto";
+    }
+
     return Number.parseInt(
       this.specifiedValues[property] || this.specifiedValues[backupProperty]
     );
