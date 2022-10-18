@@ -2,7 +2,7 @@
 
 import { Display, StyledNode } from "./style";
 
-class Rect {
+export class Rect {
   x: number;
   y: number;
   width: number;
