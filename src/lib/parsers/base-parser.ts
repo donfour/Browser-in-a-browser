@@ -45,6 +45,6 @@ export class BaseParser {
 
   // Consume and discard zero or more whitespace characters.
   consumeWhitespace(): void {
-    this.consumeWhile((char) => char === " ");
+    this.consumeWhile((char) => /\s/.test(char));
   }
 }

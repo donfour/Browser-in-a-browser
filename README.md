@@ -6,6 +6,8 @@ Terminologies:
 
 - Selector: a Simple Selector as defined in CSS 2.1.
 
+![image](https://limpet.net/mbrubeck/images/2014/pipeline.svg)
+
 Limitations:
 
 - Only available length unit is px.

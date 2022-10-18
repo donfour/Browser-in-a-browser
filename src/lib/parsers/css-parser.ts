@@ -53,7 +53,19 @@ export function compareSpecificity(a: Specificity, b: Specificity) {
 }
 
 export class CssParser extends BaseParser {
-  // Parse a rule set: `<selectors> { <declarations> }`.
+  parseRules(): Rule[] {
+    let rules = [];
+    while (true) {
+      this.consumeWhitespace();
+      if (this.eof()) {
+        break;
+      }
+      rules.push(this.parseRule());
+    }
+    return rules;
+  }
+
+  // Parse one rule set: `<selectors> { <declarations> }`.
   parseRule(): Rule {
     const selectors = this.parseSelectors();
     const declarations = this.parseDeclarations();

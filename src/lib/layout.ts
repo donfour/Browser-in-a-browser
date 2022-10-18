@@ -294,7 +294,7 @@ export class LayoutBox {
 }
 
 // Build the tree of LayoutBoxes, but don't perform any layout calculations yet.
-function buildLayoutTree(styledNode: StyledNode): LayoutBox {
+export function buildLayoutTree(styledNode: StyledNode): LayoutBox {
   const display = styledNode.display();
 
   let boxType;
