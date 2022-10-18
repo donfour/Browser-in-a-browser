@@ -1,4 +1,4 @@
-import { BoxType, Dimensions, getDefaultDimensions, LayoutBox } from "./layout";
+import { BoxType, Dimensions, LayoutBox } from "./layout";
 import { StyledNode } from "./style";
 
 describe("layout", () => {
@@ -41,7 +41,7 @@ describe("layout", () => {
           new StyledNode("some text", { width: "50" }, [])
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
@@ -58,7 +58,7 @@ describe("layout", () => {
           )
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
@@ -76,7 +76,7 @@ describe("layout", () => {
           )
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
@@ -94,7 +94,7 @@ describe("layout", () => {
           )
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
@@ -110,7 +110,7 @@ describe("layout", () => {
           new StyledNode("some text", { width: "auto" }, [])
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 100;
 
         box.calculateBlockWidth(containingBlock);
@@ -127,7 +127,7 @@ describe("layout", () => {
           )
         );
 
-        const containingBlock = getDefaultDimensions();
+        const containingBlock = new Dimensions();
         containingBlock.content.width = 50;
 
         box.calculateBlockWidth(containingBlock);
@@ -136,5 +136,74 @@ describe("layout", () => {
         expect(box.dimensions.margin.right).toEqual(0);
       });
     });
+  });
+
+  describe("calculateBlockPosition", () => {
+    test("should throw an error if styled node does not exist", () => {
+      const box = new LayoutBox(BoxType.AnonymousBlock);
+      expect(() => {
+        box.calculateBlockPosition(new Dimensions());
+      }).toThrow("Styled Node does not exist");
+    });
+    test("box content's x position should be right of containing block's x position, plus box's left margin, border, and padding.", () => {
+      const box = new LayoutBox(
+        BoxType.BlockNode,
+        new StyledNode("some text", {}, [])
+      );
+      box.dimensions.margin.left = 10;
+      box.dimensions.border.left = 10;
+      box.dimensions.padding.left = 10;
+      const containingBlock = new Dimensions();
+      containingBlock.content.x = 50;
+
+      box.calculateBlockPosition(containingBlock);
+
+      expect(box.dimensions.content.x).toEqual(80);
+    });
+    test("box content's y position should be bottom of containing block's content, plus box's top margin, border, and padding.", () => {
+      const box = new LayoutBox(
+        BoxType.BlockNode,
+        new StyledNode(
+          "some text",
+          {
+            "margin-top": "10",
+            "border-top-width": "10",
+            "padding-top": "10",
+          },
+          []
+        )
+      );
+      const containingBlock = new Dimensions();
+      containingBlock.content.y = 50;
+      containingBlock.content.height = 10;
+
+      box.calculateBlockPosition(containingBlock);
+
+      expect(box.dimensions.content.y).toEqual(90);
+    });
+  });
+
+  test("layoutBlockChildren", () => {
+    const box = new LayoutBox(
+      BoxType.BlockNode,
+      new StyledNode("some text", {}, [])
+    );
+    box.children.push(
+      new LayoutBox(
+        BoxType.BlockNode,
+        new StyledNode(
+          "some text",
+          {
+            margin: "10",
+            "border-width": "10",
+            padding: "10",
+          },
+          []
+        )
+      )
+    );
+    box.layoutBlockChildren();
+
+    expect(box.dimensions.content.height).toEqual(60);
   });
 });

@@ -2,21 +2,44 @@
 
 import { Display, StyledNode } from "./style";
 
-type Rect = {
+class Rect {
   x: number;
   y: number;
   width: number;
   height: number;
-};
 
-type EdgeSizes = {
+  constructor(x?: number, y?: number, width?: number, height?: number) {
+    this.x = x || 0;
+    this.y = y || 0;
+    this.width = width || 0;
+    this.height = height || 0;
+  }
+
+  expandedBy(edge: EdgeSizes): Rect {
+    return new Rect(
+      this.x - edge.left,
+      this.y - edge.top,
+      this.width + edge.left + edge.right,
+      this.height + edge.top + edge.bottom
+    );
+  }
+}
+
+class EdgeSizes {
   left: number;
   right: number;
   top: number;
   bottom: number;
-};
 
-export type Dimensions = {
+  constructor(left?: number, right?: number, top?: number, bottom?: number) {
+    this.left = left || 0;
+    this.right = right || 0;
+    this.top = top || 0;
+    this.bottom = bottom || 0;
+  }
+}
+
+export class Dimensions {
   // Position of the content area relative to the document origin:
   content: Rect;
 
@@ -24,31 +47,31 @@ export type Dimensions = {
   padding: EdgeSizes;
   border: EdgeSizes;
   margin: EdgeSizes;
-};
 
-const DEFAULT_RECT = {
-  x: 0,
-  y: 0,
-  width: 0,
-  height: 0,
-};
+  constructor(
+    content?: Rect,
+    padding?: EdgeSizes,
+    border?: EdgeSizes,
+    margin?: EdgeSizes
+  ) {
+    this.content = content || new Rect();
+    this.padding = padding || new EdgeSizes();
+    this.border = border || new EdgeSizes();
+    this.margin = margin || new EdgeSizes();
+  }
 
-const DEFAULT_EDGE_SIZES = {
-  left: 0,
-  right: 0,
-  top: 0,
-  bottom: 0,
-};
-
-export function getDefaultDimensions(): Dimensions {
-  return JSON.parse(
-    JSON.stringify({
-      content: { ...DEFAULT_RECT },
-      padding: { ...DEFAULT_EDGE_SIZES },
-      border: { ...DEFAULT_EDGE_SIZES },
-      margin: { ...DEFAULT_EDGE_SIZES },
-    })
-  );
+  // The area covered by the content area plus its padding.
+  paddingBox(): Rect {
+    return this.content.expandedBy(this.padding);
+  }
+  // The area covered by the content area plus padding and borders.
+  borderBox(): Rect {
+    return this.paddingBox().expandedBy(this.border);
+  }
+  // The area covered by the content area plus padding, borders, and margin.
+  marginBox(): Rect {
+    return this.borderBox().expandedBy(this.margin);
+  }
 }
 
 export enum BoxType {
@@ -58,7 +81,7 @@ export enum BoxType {
 }
 
 export class LayoutBox {
-  dimensions: Dimensions = getDefaultDimensions();
+  dimensions: Dimensions = new Dimensions();
   boxType: BoxType;
   styledNode?: StyledNode;
   children: LayoutBox[] = [];
@@ -110,14 +133,14 @@ export class LayoutBox {
     this.calculateBlockWidth(containingBlock);
 
     // Determine where the box is located within its container.
-    // TODO: this.calculateBlockPosition(containingBlock);
+    this.calculateBlockPosition(containingBlock);
 
     // Recursively lay out the children of this box.
-    // TODO: this.layoutBlockChildren();
+    this.layoutBlockChildren();
 
     // Parent height can depend on child height, so `calculateHeight`
     // must be called *after* the children are laid out.
-    // TODO: this.calculateBlockHeight();
+    this.calculateBlockHeight();
   }
 
   /// Calculate the width of a block-level non-replaced element in normal flow.
@@ -204,14 +227,69 @@ export class LayoutBox {
     const d = this.dimensions;
     d.content.width = width;
 
-    d.padding.left = Number.parseInt(paddingLeft as string);
-    d.padding.right = Number.parseInt(paddingRight as string);
+    d.padding.left = paddingLeft === "auto" ? 0 : paddingLeft;
+    d.padding.right = paddingRight === "auto" ? 0 : paddingRight;
 
-    d.border.left = Number.parseInt(borderLeft as string);
-    d.border.right = Number.parseInt(borderRight as string);
+    d.border.left = borderLeft === "auto" ? 0 : borderLeft;
+    d.border.right = borderRight === "auto" ? 0 : borderRight;
 
-    d.margin.left = Number.parseInt(marginLeft as string);
-    d.margin.right = Number.parseInt(marginRight as string);
+    d.margin.left = marginLeft === "auto" ? 0 : marginLeft;
+    d.margin.right = marginRight === "auto" ? 0 : marginRight;
+  }
+
+  calculateBlockPosition(containingBlock: Dimensions) {
+    const style = this.styledNode;
+
+    if (!style) throw new Error("Styled Node does not exist");
+
+    const d = this.dimensions;
+
+    // If margin-top or margin-bottom is `auto`, the used value is zero.
+    const toPx = (value: number | "auto"): number =>
+      value === "auto" ? 0 : value;
+
+    d.margin.top = toPx(style.lookupSize("margin-top", "margin"));
+    d.margin.bottom = toPx(style.lookupSize("margin-bottom", "margin"));
+
+    d.border.top = toPx(style.lookupSize("border-top-width", "border-width"));
+    d.border.bottom = toPx(
+      style.lookupSize("border-bottom-width", "border-width")
+    );
+
+    d.padding.top = toPx(style.lookupSize("padding-top", "padding"));
+    d.padding.bottom = toPx(style.lookupSize("padding-bottom", "padding"));
+
+    d.content.x =
+      containingBlock.content.x +
+      d.margin.left +
+      d.border.left +
+      d.padding.left;
+
+    // Position the box below all the previous boxes in the container.
+    d.content.y =
+      containingBlock.content.y +
+      containingBlock.content.height +
+      d.margin.top +
+      d.border.top +
+      d.padding.top;
+  }
+
+  layoutBlockChildren() {
+    const d = this.dimensions;
+    for (const child of this.children) {
+      child.layout(d);
+      // Track the height so each child is laid out below the previous content.
+      d.content.height = d.content.height + child.dimensions.marginBox().height;
+    }
+  }
+
+  calculateBlockHeight() {
+    // If the height is set to an explicit length, use that exact length.
+    // Otherwise, just keep the value set by `layoutBlockChildren`.
+    const height = this?.styledNode?.specifiedValues?.["height"];
+    if (height) {
+      this.dimensions.content.height = Number.parseInt(height);
+    }
   }
 }
 
