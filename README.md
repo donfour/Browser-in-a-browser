@@ -1,4 +1,4 @@
-# Toy Browser Engine in TypeScript
+# Browser in a browser
 
 Adopted from [robinson](https://github.com/mbrubeck/robinson) and [this excellent tutorial](https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html).
 

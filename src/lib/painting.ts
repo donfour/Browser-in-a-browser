@@ -1,8 +1,8 @@
 import { BoxType, LayoutBox, Rect } from "./layout";
 
-type DisplayList = DisplayCommand[];
+export type DisplayList = DisplayCommand[];
 
-enum DisplayCommandType {
+export enum DisplayCommandType {
   SolidColor,
 }
 
@@ -30,8 +30,11 @@ export function renderLayoutBox(list: DisplayList, layoutBox: LayoutBox) {
   }
 }
 
-function renderBackground(list: DisplayList, layoutBox: LayoutBox) {
+export function renderBackground(list: DisplayList, layoutBox: LayoutBox) {
   const color = getColor(layoutBox, "background");
+
+  if (!color) return;
+
   list.push({
     type: DisplayCommandType.SolidColor,
     data: {
@@ -48,6 +51,15 @@ export type Color = {
   a: number;
 };
 
+// Return the specified color for CSS property `name`, or None if no color was specified.
+function getColor(layoutBox: LayoutBox, name: string): Color | undefined {
+  switch (layoutBox.boxType) {
+    case BoxType.BlockNode:
+    case BoxType.InlineNode:
+      return parseColor(layoutBox?.styledNode?.specifiedValues?.[name]);
+  }
+}
+
 function parseColor(text?: string): Color | undefined {
   const result = /#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})/.exec(
     text || ""
@@ -62,19 +74,9 @@ function parseColor(text?: string): Color | undefined {
   }
 }
 
-// Return the specified color for CSS property `name`, or None if no color was specified.
-function getColor(layoutBox: LayoutBox, name: string): Color | undefined {
-  switch (layoutBox.boxType) {
-    case BoxType.BlockNode:
-    case BoxType.InlineNode:
-      return parseColor(layoutBox?.styledNode?.specifiedValues?.[name]);
-  }
-}
-
-function renderBorders(list: DisplayList, layoutBox: LayoutBox) {
+export function renderBorders(list: DisplayList, layoutBox: LayoutBox) {
   let color = getColor(layoutBox, "border-color");
 
-  // bail out if no border-color is specified
   if (!color) return;
 
   let d = layoutBox.dimensions;
