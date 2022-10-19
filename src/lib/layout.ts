@@ -75,9 +75,9 @@ export class Dimensions {
 }
 
 export enum BoxType {
-  BlockNode,
-  InlineNode,
-  AnonymousBlock,
+  BlockNode = "BlockNode",
+  InlineNode = "InlineNode",
+  AnonymousBlock = "AnonymousBlock",
 }
 
 export class LayoutBox {

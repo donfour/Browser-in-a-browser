@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { buildLayoutTree } from "./lib/layout";
+import { paint } from "./lib/painting";
 import { CssParser } from "./lib/parsers/css-parser";
 import { parseHtml } from "./lib/parsers/html-parser";
 import { styleTree } from "./lib/style";
@@ -50,13 +51,16 @@ function App() {
 
             const lt = buildLayoutTree(st);
             console.log("Layout tree:", lt);
+
+            const canvas = document.getElementById("canvas");
+            paint(lt, canvas as HTMLCanvasElement);
           }}
         >
           Parse
         </button>
       </div>
       <div className="flex-1">
-        <canvas className="h-full w-full bg-white" />
+        <canvas id="canvas" className="h-full w-full bg-white" />
       </div>
     </div>
   );

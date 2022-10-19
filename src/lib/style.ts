@@ -8,9 +8,9 @@ import {
 } from "./parsers/css-parser";
 
 export enum Display {
-  Inline,
-  Block,
-  None,
+  Inline = "Inline",
+  Block = "Block",
+  None = "None",
 }
 
 // Map from CSS property names to values.

@@ -3,16 +3,26 @@ import { BoxType, LayoutBox, Rect } from "./layout";
 export type DisplayList = DisplayCommand[];
 
 export enum DisplayCommandType {
-  SolidColor,
+  SolidColor = "SolidColor",
 }
 
-type DisplayCommand = {
-  type: DisplayCommandType;
-  data: {
-    color?: Color;
-    rect: Rect;
-  };
-};
+//helper type
+type DiscriminatedUnion<K extends PropertyKey, T extends object> = {
+  [P in keyof T]: { [Q in K]: P } & T[P] extends infer U
+    ? { [Q in keyof U]: U[Q] }
+    : never;
+}[keyof T];
+
+type DisplayCommand = DiscriminatedUnion<
+  "type",
+  {
+    [DisplayCommandType.SolidColor]: {
+      color: Color;
+      rect: Rect;
+    };
+    square: { length: number };
+  }
+>;
 
 export function buildDisplayList(layoutRoot: LayoutBox): DisplayList {
   const list: DisplayList = [];
@@ -37,10 +47,8 @@ export function renderBackground(list: DisplayList, layoutBox: LayoutBox) {
 
   list.push({
     type: DisplayCommandType.SolidColor,
-    data: {
-      color,
-      rect: layoutBox.dimensions.borderBox(),
-    },
+    color,
+    rect: layoutBox.dimensions.borderBox(),
   });
 }
 
@@ -75,56 +83,71 @@ function parseColor(text?: string): Color | undefined {
 }
 
 export function renderBorders(list: DisplayList, layoutBox: LayoutBox) {
-  let color = getColor(layoutBox, "border-color");
+  const color = getColor(layoutBox, "border-color");
 
   if (!color) return;
 
-  let d = layoutBox.dimensions;
-  let borderBox = d.borderBox();
+  const d = layoutBox.dimensions;
+  const borderBox = d.borderBox();
 
   // Left border
   list.push({
     type: DisplayCommandType.SolidColor,
-    data: {
-      color,
-      rect: new Rect(borderBox.x, borderBox.y, d.border.left, borderBox.height),
-    },
+    color,
+    rect: new Rect(borderBox.x, borderBox.y, d.border.left, borderBox.height),
   });
 
   // Right border
   list.push({
     type: DisplayCommandType.SolidColor,
-    data: {
-      color,
-      rect: new Rect(
-        borderBox.x + borderBox.width - d.border.right,
-        borderBox.y,
-        d.border.right,
-        borderBox.height
-      ),
-    },
+    color,
+    rect: new Rect(
+      borderBox.x + borderBox.width - d.border.right,
+      borderBox.y,
+      d.border.right,
+      borderBox.height
+    ),
   });
 
   // Top border
   list.push({
     type: DisplayCommandType.SolidColor,
-    data: {
-      color,
-      rect: new Rect(borderBox.x, borderBox.y, borderBox.width, d.border.top),
-    },
+    color,
+    rect: new Rect(borderBox.x, borderBox.y, borderBox.width, d.border.top),
   });
 
   // Bottom border
   list.push({
     type: DisplayCommandType.SolidColor,
-    data: {
-      color,
-      rect: new Rect(
-        borderBox.x,
-        borderBox.y + borderBox.height - d.border.bottom,
-        borderBox.width,
-        d.border.bottom
-      ),
-    },
+    color,
+    rect: new Rect(
+      borderBox.x,
+      borderBox.y + borderBox.height - d.border.bottom,
+      borderBox.width,
+      d.border.bottom
+    ),
   });
+}
+
+// Paint a tree of LayoutBoxes to an array of pixels.
+export function paint(layoutRoot: LayoutBox, canvas: HTMLCanvasElement) {
+  const ctx = canvas?.getContext("2d");
+
+  if (!ctx) return;
+
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  const displayList = buildDisplayList(layoutRoot);
+  console.log("Display list:", displayList);
+  for (const item of displayList) {
+    switch (item.type) {
+      case DisplayCommandType.SolidColor:
+        const { r, g, b } = item.color;
+        const { x, y, width, height } = item.rect;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fillRect(x, y, width, height);
+        break;
+    }
+  }
+  return canvas;
 }

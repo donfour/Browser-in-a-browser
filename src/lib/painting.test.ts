@@ -35,21 +35,9 @@ describe("painting", () => {
 
       expect(displayList).toEqual([
         {
-          data: {
-            color: {
-              a: 255,
-              b: 239,
-              g: 205,
-              r: 171,
-            },
-            rect: {
-              height: 0,
-              width: 0,
-              x: 0,
-              y: 0,
-            },
-          },
           type: DisplayCommandType.SolidColor,
+          color: { a: 255, b: 239, g: 205, r: 171 },
+          rect: { height: 0, width: 0, x: 0, y: 0 },
         },
       ]);
     });
@@ -79,32 +67,24 @@ describe("painting", () => {
 
       expect(displayList).toEqual([
         {
-          type: 0,
-          data: {
-            color: { r: 171, g: 205, b: 239, a: 255 },
-            rect: { x: -4, y: -1, width: 4, height: 4 },
-          },
+          type: DisplayCommandType.SolidColor,
+          color: { r: 171, g: 205, b: 239, a: 255 },
+          rect: { x: -4, y: -1, width: 4, height: 4 },
         },
         {
-          type: 0,
-          data: {
-            color: { r: 171, g: 205, b: 239, a: 255 },
-            rect: { x: 0, y: -1, width: 2, height: 4 },
-          },
+          type: DisplayCommandType.SolidColor,
+          color: { r: 171, g: 205, b: 239, a: 255 },
+          rect: { x: 0, y: -1, width: 2, height: 4 },
         },
         {
-          type: 0,
-          data: {
-            color: { r: 171, g: 205, b: 239, a: 255 },
-            rect: { x: -4, y: -1, width: 6, height: 1 },
-          },
+          type: DisplayCommandType.SolidColor,
+          color: { r: 171, g: 205, b: 239, a: 255 },
+          rect: { x: -4, y: -1, width: 6, height: 1 },
         },
         {
-          type: 0,
-          data: {
-            color: { r: 171, g: 205, b: 239, a: 255 },
-            rect: { x: -4, y: 0, width: 6, height: 3 },
-          },
+          type: DisplayCommandType.SolidColor,
+          color: { r: 171, g: 205, b: 239, a: 255 },
+          rect: { x: -4, y: 0, width: 6, height: 3 },
         },
       ]);
     });
