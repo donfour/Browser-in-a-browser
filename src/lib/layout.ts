@@ -244,7 +244,7 @@ export class LayoutBox {
 
     const d = this.dimensions;
 
-    // If margin-top or margin-bottom is `auto`, the used value is zero.
+    // If margin-top or margin-bottom is `auto` or undefined, the used value is zero.
     const toPx = (value: number | "auto"): number =>
       value === "auto" ? 0 : value;
 
@@ -328,4 +328,16 @@ export function buildLayoutTree(styledNode: StyledNode): LayoutBox {
   }
 
   return root;
+}
+
+export function layoutTree(
+  node: StyledNode,
+  containingBlock: Dimensions
+): LayoutBox {
+  // The layout algorithm expects the container height to start at 0.
+  // TODO: Save the initial containing block height, for calculating percent heights.
+  containingBlock.content.height = 0.0;
+  const rootBox = buildLayoutTree(node);
+  rootBox.layout(containingBlock);
+  return rootBox;
 }

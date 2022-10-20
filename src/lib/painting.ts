@@ -44,11 +44,12 @@ export function renderBackground(list: DisplayList, layoutBox: LayoutBox) {
   const color = getColor(layoutBox, "background");
 
   if (!color) return;
-
+  const asdf = layoutBox.dimensions.borderBox();
+  console.log(asdf);
   list.push({
     type: DisplayCommandType.SolidColor,
     color,
-    rect: layoutBox.dimensions.borderBox(),
+    rect: asdf,
   });
 }
 
@@ -130,11 +131,7 @@ export function renderBorders(list: DisplayList, layoutBox: LayoutBox) {
 }
 
 // Paint a tree of LayoutBoxes to an array of pixels.
-export function paint(layoutRoot: LayoutBox, canvas: HTMLCanvasElement) {
-  const ctx = canvas?.getContext("2d");
-
-  if (!ctx) return;
-
+export function paint(layoutRoot: LayoutBox, ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   const displayList = buildDisplayList(layoutRoot);
@@ -149,5 +146,4 @@ export function paint(layoutRoot: LayoutBox, canvas: HTMLCanvasElement) {
         break;
     }
   }
-  return canvas;
 }

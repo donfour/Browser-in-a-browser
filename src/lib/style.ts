@@ -52,6 +52,13 @@ export class StyledNode {
       return "auto";
     }
 
+    if (
+      !this.specifiedValues[property] ||
+      !this.specifiedValues[backupProperty]
+    ) {
+      return 0;
+    }
+
     return Number.parseInt(
       this.specifiedValues[property] || this.specifiedValues[backupProperty]
     );

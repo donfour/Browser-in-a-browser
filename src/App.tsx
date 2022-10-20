@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { buildLayoutTree } from "./lib/layout";
+import { buildLayoutTree, Dimensions, layoutTree } from "./lib/layout";
 import { paint } from "./lib/painting";
 import { CssParser } from "./lib/parsers/css-parser";
 import { parseHtml } from "./lib/parsers/html-parser";
@@ -49,11 +49,20 @@ function App() {
             const st = styleTree(root, { rules });
             console.log("Style tree:", st);
 
-            const lt = buildLayoutTree(st);
-            console.log("Layout tree:", lt);
+            const ctx = (
+              document.getElementById("canvas") as HTMLCanvasElement
+            )?.getContext("2d");
 
-            const canvas = document.getElementById("canvas");
-            paint(lt, canvas as HTMLCanvasElement);
+            if (!ctx) return;
+
+            const viewport = new Dimensions();
+            viewport.content.width = ctx.canvas.width;
+            viewport.content.height = ctx.canvas.height;
+
+            const layoutRoot = layoutTree(st, viewport);
+            console.log("Layout tree:", layoutRoot);
+
+            paint(layoutRoot, ctx);
           }}
         >
           Parse
