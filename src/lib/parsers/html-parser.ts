@@ -2,6 +2,20 @@ import { AttributesMap, ElementNode, Node, TextNode } from "../dom";
 import { assertEqual, BaseParser } from "./base-parser";
 
 export class HtmlParser extends BaseParser {
+  parseHtml(): Node {
+    let nodes = this.parseNodes();
+
+    // If the document contains a root element, just return it. Otherwise, create one.
+    if (nodes.length === 1) {
+      return nodes[0];
+    } else {
+      return new ElementNode(nodes, {
+        tagName: "html",
+        attributes: {},
+      });
+    }
+  }
+
   // Parse a tag or attribute name.
   parseTagName(): string {
     return this.consumeWhile((char) => /[a-zA-z0-9]/.test(char));
@@ -92,18 +106,3 @@ export class HtmlParser extends BaseParser {
     return nodes;
   }
 }
-
-// Parse an HTML document and return the root element.
-export const parseHtml = (source: string): Node => {
-  let nodes = new HtmlParser(source).parseNodes();
-
-  // If the document contains a root element, just return it. Otherwise, create one.
-  if (nodes.length === 1) {
-    return nodes[0];
-  } else {
-    return new ElementNode(nodes, {
-      tagName: "html",
-      attributes: {},
-    });
-  }
-};

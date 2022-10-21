@@ -45,23 +45,19 @@ export class StyledNode {
   }
 
   lookupSize(property: string, backupProperty: string): number | "auto" {
-    if (
-      this.specifiedValues[property] === "auto" ||
-      this.specifiedValues[backupProperty] === "auto"
-    ) {
+    if (this.specifiedValues[property] === "auto") {
       return "auto";
     }
-
-    if (
-      !this.specifiedValues[property] ||
-      !this.specifiedValues[backupProperty]
-    ) {
-      return 0;
+    if (Number.parseInt(this.specifiedValues[property])) {
+      return Number.parseInt(this.specifiedValues[property]);
     }
-
-    return Number.parseInt(
-      this.specifiedValues[property] || this.specifiedValues[backupProperty]
-    );
+    if (this.specifiedValues[backupProperty] === "auto") {
+      return "auto";
+    }
+    if (Number.parseInt(this.specifiedValues[backupProperty])) {
+      return Number.parseInt(this.specifiedValues[backupProperty]);
+    }
+    return 0;
   }
 }
 
@@ -140,13 +136,14 @@ export function specifiedValues(
 }
 
 // Apply a stylesheet to an entire DOM tree, returning a StyledNode tree.
-export function styleTree(root: Node, stylesheet: Stylesheet): StyledNode {
+export function getStyleTree(root: Node, stylesheet: Stylesheet): StyledNode {
   const s =
     root instanceof TextNode
       ? {}
       : specifiedValues((root as ElementNode).data, stylesheet);
+
   const children: StyledNode[] = root.children.map((child) =>
-    styleTree(child, stylesheet)
+    getStyleTree(child, stylesheet)
   );
 
   return new StyledNode(root.data, s, children);

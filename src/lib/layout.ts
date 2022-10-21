@@ -150,25 +150,22 @@ export class LayoutBox {
   /// Sets the horizontal margin/padding/border dimensions, and the `width`.
   calculateBlockWidth(containingBlock: Dimensions) {
     const style = this.styledNode;
+    if (!style) return;
 
     // `width` has initial value `auto`.
     const auto = "auto";
     let width: number | "auto" =
-      Number.parseInt(style?.specifiedValues?.width || "") || auto;
+      Number.parseInt(style.specifiedValues.width || "") || auto;
 
     // margin, border, and padding have initial value 0.
-    const zero = 0;
+    let marginLeft = style.lookupSize("margin-left", "margin");
+    let marginRight = style.lookupSize("margin-right", "margin");
 
-    let marginLeft = style?.lookupSize("margin-left", "margin") || zero;
-    let marginRight = style?.lookupSize("margin-right", "margin") || zero;
+    const borderLeft = style.lookupSize("border-left-width", "border-width");
+    const borderRight = style.lookupSize("border-right-width", "border-width");
 
-    const borderLeft =
-      style?.lookupSize("border-left-width", "border-width") || zero;
-    const borderRight =
-      style?.lookupSize("border-right-width", "border-width") || zero;
-
-    const paddingLeft = style?.lookupSize("padding-left", "padding") || zero;
-    const paddingRight = style?.lookupSize("padding-right", "padding") || zero;
+    const paddingLeft = style.lookupSize("padding-left", "padding");
+    const paddingRight = style.lookupSize("padding-right", "padding");
 
     const total = [
       marginLeft,
@@ -196,6 +193,7 @@ export class LayoutBox {
     // Each arm of the `match` should increase the total width by exactly `underflow`,
     // and afterward all values should be absolute lengths in px.
     const underflow = containingBlock.content.width - (total as number);
+    console.log("underflow", underflow);
 
     if (width !== auto) {
       if (marginLeft !== auto && marginRight !== auto) {
@@ -244,7 +242,7 @@ export class LayoutBox {
 
     const d = this.dimensions;
 
-    // If margin-top or margin-bottom is `auto` or undefined, the used value is zero.
+    // If value is `auto` or undefined, the used value is zero.
     const toPx = (value: number | "auto"): number =>
       value === "auto" ? 0 : value;
 

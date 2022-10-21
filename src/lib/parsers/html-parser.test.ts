@@ -1,4 +1,4 @@
-import { parseHtml, HtmlParser } from "./html-parser";
+import { HtmlParser } from "./html-parser";
 
 describe("HtmlParser", () => {
   test("parseTagName", () => {
@@ -34,30 +34,35 @@ describe("HtmlParser", () => {
       },
     ]);
   });
-});
 
-test("parseHtml", () => {
-  expect(parseHtml("<div>hello</div><div>hello</div>")).toEqual({
-    children: [
-      {
-        children: [{ children: [], data: "hello" }],
+  describe("parseHtml", () => {
+    test("should create a html root tag if input doesn't have a single root", () => {
+      const parser = new HtmlParser("<div>hello</div><div>hello</div>");
+      expect(parser.parseHtml()).toEqual({
+        children: [
+          {
+            children: [{ children: [], data: "hello" }],
+            data: { attributes: {}, tagName: "div" },
+          },
+          {
+            children: [{ children: [], data: "hello" }],
+            data: { attributes: {}, tagName: "div" },
+          },
+        ],
+        data: { attributes: {}, tagName: "html" },
+      });
+    });
+    test("should not create a html root tag if input already has a single root", () => {
+      const parser = new HtmlParser("<div>hello</div>");
+      expect(parser.parseHtml()).toEqual({
+        children: [
+          {
+            children: [],
+            data: "hello",
+          },
+        ],
         data: { attributes: {}, tagName: "div" },
-      },
-      {
-        children: [{ children: [], data: "hello" }],
-        data: { attributes: {}, tagName: "div" },
-      },
-    ],
-    data: { attributes: {}, tagName: "html" },
-  });
-
-  expect(parseHtml("<div>hello</div>")).toEqual({
-    children: [
-      {
-        children: [],
-        data: "hello",
-      },
-    ],
-    data: { attributes: {}, tagName: "div" },
+      });
+    });
   });
 });

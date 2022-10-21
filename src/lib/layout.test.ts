@@ -103,7 +103,7 @@ describe("layout", () => {
         expect(box.dimensions.margin.right).toEqual(25);
       });
     });
-    describe("if width his set to auto", () => {
+    describe("if width is set to auto", () => {
       test("if underflow is larger or equal to 0, set width to underflow", () => {
         const box = new LayoutBox(
           BoxType.BlockNode,

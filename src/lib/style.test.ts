@@ -5,7 +5,7 @@ import {
   matchingRules,
   matchRule,
   specifiedValues,
-  styleTree,
+  getStyleTree,
 } from "./style";
 
 describe("style", () => {
@@ -186,7 +186,7 @@ describe("style", () => {
     });
   });
 
-  describe("styleTree", () => {
+  describe("getStyleTree", () => {
     test("should return a style tree", () => {
       const root: ElementNode = {
         children: [
@@ -220,7 +220,7 @@ describe("style", () => {
         ],
       };
 
-      expect(styleTree(root, stylesheet)).toEqual({
+      expect(getStyleTree(root, stylesheet)).toEqual({
         data: { attributes: {}, tagName: "html" },
         specifiedValues: { foo: "bar" },
         children: [
