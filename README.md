@@ -11,3 +11,4 @@ Terminologies:
 Limitations:
 
 - Only available length unit is px.
+- Tags don't have a display value by default. Tag can be any arbitrary names.

@@ -14,10 +14,13 @@ function App() {
     const rules = new CssParser(css).parseRules();
     const styleTree = getStyleTree(root, { rules });
 
-    const ctx = (
-      document.getElementById("canvas") as HTMLCanvasElement
-    )?.getContext("2d");
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!canvas) return;
 
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const viewport = new Dimensions();
